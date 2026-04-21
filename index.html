@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Slack CRM for SMBs</title>
+	<style>
+		/* ===================================
+		   DESIGN TOKENS from Slack MCP Server
+		   =================================== */
+
+		:root {
+			/* Brand Core Colors — color-brand-core-* tokens */
+			--aubergine: #4a154b;        /* color-brand-core-aubergine */
+			--horchatta: #f4ede4;        /* color-brand-core-horchatta */
+			--black: #1d1c1d;            /* color-brand-core-black */
+			--white: #ffffff;            /* color-brand-core-white */
+			--slack-blue: #36c5f0;       /* color-brand-core-slack-blue */
+			--slack-green: #2eb67d;      /* color-brand-core-slack-green */
+			--slack-yellow: #ecb22e;     /* color-brand-core-slack-yellow */
+			--slack-red: #e01e5a;        /* color-brand-core-slack-red */
+
+			/* Brand Secondary Colors — color-brand-secondary-* tokens */
+			--terracotta: #de8969;       /* color-brand-secondary-terracotta */
+			--peach: #fed4be;            /* color-brand-secondary-peach */
+			--sandbar: #ffd57e;          /* color-brand-secondary-sandbar */
+			--moss: #608813;             /* color-brand-secondary-moss */
+			--evergreen: #185f34;        /* color-brand-secondary-evergreen */
+			--pool: #78d7dd;             /* color-brand-secondary-pool */
+			--teal: #167d8e;             /* color-brand-secondary-teal */
+			--cobalt: #112377;           /* color-brand-secondary-cobalt */
+			--small-text: #454447;       /* color-brand-secondary-small-text */
+			--legal: #5e5d60;            /* color-brand-secondary-legal */
+
+			/* Spacing Tokens — spacing-* */
+			--space-50: 8px;             /* spacing-50 */
+			--space-75: 12px;            /* spacing-75 */
+			--space-100: 16px;           /* spacing-100 */
+			--space-150: 24px;           /* spacing-150 */
+			--space-200: 32px;           /* spacing-200 */
+			--space-300: 48px;           /* spacing-300 */
+			--space-400: 64px;           /* spacing-400 */
+
+			/* Shadow Tokens — shadow-* */
+			--shadow-sm: 0 1px 2px 0 #0000000c;                                         /* shadow-sm */
+			--shadow-base: 0 1px 2px -1px #00000019, 0 1px 3px 0 #00000019;             /* shadow-base */
+			--shadow-md: 0 4px 6px -1px #00000019, 0 2px 4px -2px #00000019;            /* shadow-md */
+			--shadow-lg: 0 10px 15px -3px #00000019, 0 4px 6px -4px #00000019;          /* shadow-lg */
+			--shadow-xl: 0 8px 10px -6px #00000019, 0 20px 25px -5px #00000019;         /* shadow-xl */
+		}
+
+		/* ===================================
+		   PAGE STYLES using design tokens
+		   =================================== */
+
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+
+		body {
+			font-family: 'Lato', -apple-system, BlinkMacSystemFont, sans-serif;
+			color: var(--black);
+			background: var(--white);
+			line-height: 1.6;
+		}
+
+		/* — Hero Section — */
+		.hero {
+			background: var(--aubergine);
+			color: var(--white);
+			padding: 80px var(--space-200) 100px;
+			text-align: center;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.hero::before {
+			content: '';
+			position: absolute;
+			top: -50%;
+			left: -10%;
+			width: 120%;
+			height: 200%;
+			background: radial-gradient(ellipse at 30% 50%, rgba(54, 197, 240, 0.15) 0%, transparent 60%),
+						radial-gradient(ellipse at 70% 50%, rgba(46, 182, 125, 0.1) 0%, transparent 60%);
+			pointer-events: none;
+		}
+
+		.hero-content { position: relative; max-width: 800px; margin: 0 auto; }
+
+		.hero .slack-logo { margin-bottom: var(--space-150); }
+		.hero .slack-logo svg { width: 48px; height: 48px; }
+
+		.hero h1 {
+			font-size: 3.2rem;
+			font-weight: 900;
+			line-height: 1.15;
+			margin-bottom: var(--space-100);
+			letter-spacing: -0.02em;
+		}
+
+		.hero h1 .gradient-text {
+			background: linear-gradient(135deg, var(--slack-blue), var(--slack-green));
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+		}
+
+		.hero p {
+			font-size: 1.25rem;
+			color: var(--horchatta);
+			max-width: 600px;
+			margin: 0 auto var(--space-200);
+			opacity: 0.9;
+		}
+
+		.cta-button {
+			display: inline-block;
+			background: var(--slack-green);
+			color: var(--white);
+			padding: var(--space-75) var(--space-200);
+			border-radius: 8px;
+			text-decoration: none;
+			font-weight: 700;
+			font-size: 1.1rem;
+			box-shadow: var(--shadow-lg);
+			transition: transform 0.2s, box-shadow 0.2s;
+		}
+
+		.cta-button:hover {
+			transform: translateY(-2px);
+			box-shadow: var(--shadow-xl);
+		}
+
+		/* — Token Showcase Banner — */
+		.token-banner {
+			background: var(--horchatta);
+			padding: var(--space-150) var(--space-200);
+			text-align: center;
+			border-bottom: 1px solid #e0d8cf;
+		}
+
+		.token-banner p {
+			font-size: 0.85rem;
+			color: var(--legal);
+			max-width: 700px;
+			margin: 0 auto;
+		}
+
+		.token-banner code {
+			background: var(--white);
+			padding: 2px 6px;
+			border-radius: 4px;
+			font-size: 0.8rem;
+			color: var(--aubergine);
+		}
+
+		/* — Features Section — */
+		.features {
+			padding: 80px var(--space-200);
+			max-width: 1100px;
+			margin: 0 auto;
+		}
+
+		.features h2 {
+			text-align: center;
+			font-size: 2.2rem;
+			margin-bottom: var(--space-50);
+			color: var(--aubergine);
+		}
+
+		.features .subtitle {
+			text-align: center;
+			color: var(--small-text);
+			font-size: 1.1rem;
+			margin-bottom: var(--space-400);
+			max-width: 600px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		.feature-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+			gap: var(--space-200);
+		}
+
+		.feature-card {
+			padding: var(--space-200);
+			border-radius: 12px;
+			border: 1px solid #eee;
+			box-shadow: var(--shadow-sm);
+			transition: box-shadow 0.3s, transform 0.3s;
+		}
+
+		.feature-card:hover {
+			box-shadow: var(--shadow-md);
+			transform: translateY(-4px);
+		}
+
+		.feature-card .icon-circle {
+			width: 56px;
+			height: 56px;
+			border-radius: 14px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-bottom: var(--space-100);
+		}
+
+		.feature-card .icon-circle svg { width: 28px; height: 28px; }
+
+		.feature-card h3 {
+			font-size: 1.25rem;
+			margin-bottom: var(--space-50);
+			color: var(--black);
+		}
+
+		.feature-card p {
+			color: var(--small-text);
+			font-size: 0.95rem;
+		}
+
+		.feature-card .token-note {
+			margin-top: var(--space-75);
+			font-size: 0.75rem;
+			color: var(--legal);
+			font-style: italic;
+		}
+
+		/* Card accent colors using brand tokens */
+		.card-blue .icon-circle { background: rgba(54, 197, 240, 0.12); color: var(--slack-blue); }
+		.card-green .icon-circle { background: rgba(46, 182, 125, 0.12); color: var(--slack-green); }
+		.card-yellow .icon-circle { background: rgba(236, 178, 46, 0.12); color: var(--slack-yellow); }
+		.card-red .icon-circle { background: rgba(224, 30, 90, 0.12); color: var(--slack-red); }
+		.card-teal .icon-circle { background: rgba(22, 125, 142, 0.12); color: var(--teal); }
+		.card-cobalt .icon-circle { background: rgba(17, 35, 119, 0.12); color: var(--cobalt); }
+
+		/* — Color Palette Section — */
+		.palette-section {
+			background: var(--aubergine);
+			padding: 80px var(--space-200);
+			color: var(--white);
+		}
+
+		.palette-section h2 {
+			text-align: center;
+			font-size: 2rem;
+			margin-bottom: var(--space-50);
+		}
+
+		.palette-section .subtitle {
+			text-align: center;
+			color: var(--horchatta);
+			opacity: 0.8;
+			margin-bottom: var(--space-300);
+		}
+
+		.palette-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+			gap: var(--space-100);
+			max-width: 900px;
+			margin: 0 auto;
+		}
+
+		.swatch {
+			text-align: center;
+		}
+
+		.swatch-color {
+			width: 100%;
+			height: 80px;
+			border-radius: 12px;
+			margin-bottom: var(--space-50);
+			box-shadow: var(--shadow-base);
+		}
+
+		.swatch-label { font-size: 0.8rem; font-weight: 700; }
+		.swatch-value { font-size: 0.7rem; color: var(--horchatta); opacity: 0.7; }
+
+		/* — Video Demo Section — */
+		.demo-section {
+			padding: 80px var(--space-200);
+			max-width: 900px;
+			margin: 0 auto;
+			text-align: center;
+		}
+
+		.demo-section h2 {
+			font-size: 2.2rem;
+			color: var(--aubergine);
+			margin-bottom: var(--space-100);
+		}
+
+		.demo-section p {
+			color: var(--small-text);
+			margin-bottom: var(--space-200);
+			font-size: 1.1rem;
+		}
+
+		.video-placeholder {
+			background: linear-gradient(135deg, var(--aubergine) 0%, var(--cobalt) 100%);
+			border-radius: 16px;
+			padding: 100px var(--space-200);
+			color: var(--white);
+			box-shadow: var(--shadow-xl);
+			cursor: pointer;
+			transition: transform 0.3s;
+			position: relative;
+		}
+
+		.video-placeholder:hover { transform: scale(1.02); }
+
+		.play-button {
+			width: 72px;
+			height: 72px;
+			background: rgba(255, 255, 255, 0.2);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin: 0 auto var(--space-100);
+			backdrop-filter: blur(8px);
+		}
+
+		.play-button svg { width: 32px; height: 32px; color: var(--white); }
+
+		/* — Checklist Section — */
+		.checklist-section {
+			background: var(--horchatta);
+			padding: 80px var(--space-200);
+		}
+
+		.checklist-section h2 {
+			text-align: center;
+			font-size: 2rem;
+			color: var(--aubergine);
+			margin-bottom: var(--space-300);
+		}
+
+		.checklist {
+			max-width: 600px;
+			margin: 0 auto;
+			list-style: none;
+		}
+
+		.checklist li {
+			display: flex;
+			align-items: flex-start;
+			gap: var(--space-75);
+			margin-bottom: var(--space-100);
+			font-size: 1.1rem;
+			color: var(--black);
+		}
+
+		.checklist li svg {
+			flex-shrink: 0;
+			width: 24px;
+			height: 24px;
+			margin-top: 2px;
+		}
+
+		/* — Footer — */
+		.footer {
+			background: var(--black);
+			color: var(--horchatta);
+			padding: var(--space-300) var(--space-200);
+			text-align: center;
+		}
+
+		.footer .slack-logo { margin-bottom: var(--space-100); }
+		.footer .slack-logo svg { width: 32px; height: 32px; }
+
+		.footer p {
+			font-size: 0.85rem;
+			opacity: 0.6;
+			max-width: 500px;
+			margin: 0 auto;
+		}
+
+		.footer .token-credits {
+			margin-top: var(--space-150);
+			font-size: 0.75rem;
+			opacity: 0.4;
+		}
+	</style>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+	<!-- ========== HERO ========== -->
+	<section class="hero">
+		<div class="hero-content">
+			<!-- Icon: slack-logo-color (brand) from design tokens MCP -->
+			<div class="slack-logo">
+				<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 20 20"><g fill="none"><path fill="#36c5f0" d="M7.63 5.73q.52 0 .95.26.44.25.69.69.26.43.26.94 0 .52-.26.96a1.9 1.9 0 0 1-.69.69q-.43.25-.95.25H2.9q-.51 0-.95-.25a2 2 0 0 1-.7-.69A1.9 1.9 0 0 1 1 7.62q0-.51.26-.94.26-.44.69-.69.44-.26.95-.26zM7.62 1q.52 0 .95.26.44.25.69.69.26.44.26.95v1.9h-1.9q-.51 0-.95-.25a2 2 0 0 1-.69-.69 1.9 1.9 0 0 1-.25-.96q0-.51.25-.94.26-.44.69-.7.44-.26.95-.26"/><path fill="#f1b900" d="M12.37 15.201q.51 0 .94.26.43.249.68.69.26.43.26.95 0 .51-.26.95a1.8 1.8 0 0 1-.68.69q-.43.259-.94.26-.519-.001-.96-.26a1.9 1.9 0 0 1-.69-.69 1.9 1.9 0 0 1-.25-.95v-1.9zm4.73-4.73q.51 0 .95.26.44.25.69.69.26.43.26.95 0 .51-.26.94a1.9 1.9 0 0 1-.69.69q-.44.25-.95.25h-4.73q-.519 0-.96-.25a2 2 0 0 1-.69-.69q-.25-.43-.25-.94 0-.52.25-.95.26-.44.69-.69.441-.26.96-.26z"/><path fill="#e01e5a" d="M7.62 10.47q.52 0 .95.26.44.251.69.69.26.431.26.951v4.73q0 .51-.26.95a1.8 1.8 0 0 1-.69.69q-.43.259-.95.26-.51 0-.95-.26a2 2 0 0 1-.69-.7q-.25-.43-.25-.94v-4.73q0-.52.25-.95.26-.44.69-.69.44-.26.95-.26m-2.82 0v1.901q0 .51-.26.94a1.9 1.9 0 0 1-.69.69q-.43.25-.95.25-.51 0-.95-.25a2 2 0 0 1-.7-.69Q1 12.88 1 12.37a1.86 1.86 0 0 1 .95-1.64q.44-.26.95-.26z"/><path fill="#2eb67d" d="M12.37 1q.51 0 .94.26.43.25.68.69.26.44.26.95v4.73q0 .52-.26.96a1.84 1.84 0 0 1-1.62.94q-.519 0-.96-.25a2 2 0 0 1-.69-.69 1.9 1.9 0 0 1-.25-.96V2.9q0-.51.25-.95.26-.44.69-.69.441-.26.96-.26m4.73 4.73q.51 0 .94.26.44.25.7.69.26.43.26.94 0 .52-.26.96a1.9 1.9 0 0 1-.69.69q-.44.25-.95.25h-1.9v-1.9q0-.51.25-.94.26-.44.69-.69.44-.26.96-.26"/></g></svg>
+			</div>
+			<h1>The CRM that lives<br>where <span class="gradient-text">your team</span> works</h1>
+			<p>Slack CRM for SMBs. No tab-switching, no data entry grind. Just relationships, managed where conversations already happen.</p>
+			<a href="#features" class="cta-button">See how it works</a>
+		</div>
+	</section>
+
+	<!-- ========== TOKEN SHOWCASE BANNER ========== -->
+	<div class="token-banner">
+		<p>This page is built entirely with <strong>Slack Design Tokens</strong> from the MCP server. Colors like <code>color-brand-core-aubergine #4a154b</code>, spacing like <code>spacing-200 32px</code>, shadows like <code>shadow-lg</code>, and SVG icons like <code>slack-logo-color</code> and <code>play-filled</code> are all sourced programmatically.</p>
+	</div>
+
+	<!-- ========== FEATURES ========== -->
+	<section class="features" id="features">
+		<h2>Built for how SMBs actually sell</h2>
+		<p class="subtitle">No six-month rollout. No admin certification. Just open Slack.</p>
+
+		<div class="feature-grid">
+			<!-- Card 1 — uses slack-ai-filled icon + slack-blue accent -->
+			<div class="feature-card card-blue">
+				<div class="icon-circle">
+					<!-- Icon: slack-ai-filled (brand) from design tokens MCP -->
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" fill-rule="evenodd" d="M10 1c.38 0 .873.25.957.817.444 2.975.914 4.474 1.833 5.393.92.92 2.418 1.39 5.393 1.833.568.084.817.576.817.957 0 .38-.25.873-.817.957-2.975.444-4.474.914-5.393 1.833-.92.92-1.39 2.418-1.833 5.393-.084.568-.576.817-.957.817-.38 0-.873-.25-.957-.817-.444-2.975-.914-4.474-1.833-5.393-.92-.92-2.418-1.39-5.393-1.833C1.25 10.873 1 10.381 1 10c0-.38.25-.873.817-.957 2.975-.444 4.474-.914 5.393-1.833.92-.92 1.39-2.418 1.833-5.393C9.127 1.25 9.619 1 10 1" clip-rule="evenodd"/></svg>
+				</div>
+				<h3>AI that does the logging for you</h3>
+				<p>Slack AI captures meeting notes, follow-ups, and deal updates from your conversations. Your CRM stays current without anyone touching it.</p>
+				<div class="token-note">Icon: slack-ai-filled &middot; Accent: color-brand-core-slack-blue #36c5f0</div>
+			</div>
+
+			<!-- Card 2 — uses play-filled icon + green accent -->
+			<div class="feature-card card-green">
+				<div class="icon-circle">
+					<!-- Icon: play-filled (media) from design tokens MCP -->
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M5.884 1.92c-1.5-.876-3.384.206-3.384 1.943V16.14c0 1.736 1.884 2.818 3.384 1.943l10.523-6.138c1.488-.869 1.488-3.02 0-3.887z"/></svg>
+				</div>
+				<h3>Video prospecting, right from Slack</h3>
+				<p>Record a Clip, pick a template, and AI turns your raw footage into a polished marketing video. Reel Talk makes every SMB marketer a content creator.</p>
+				<div class="token-note">Icon: play-filled &middot; Accent: color-brand-core-slack-green #2eb67d</div>
+			</div>
+
+			<!-- Card 3 — uses check-circle-filled icon + yellow accent -->
+			<div class="feature-card card-yellow">
+				<div class="icon-circle">
+					<!-- Icon: check-circle-filled (status) from design tokens MCP -->
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" fill-rule="evenodd" d="M10 19a9 9 0 1 0 0-18 9 9 0 0 0 0 18m3.722-11.315a.75.75 0 1 0-1.144-.97l-4.125 4.863-1.141-1.611a.75.75 0 1 0-1.224.867l1.7 2.4a.75.75 0 0 0 1.184.051z" clip-rule="evenodd"/></svg>
+				</div>
+				<h3>Pipeline you can actually see</h3>
+				<p>Sales Trackers give your team a shared, visual pipeline right in the channel. Drag deals forward. No spreadsheet required.</p>
+				<div class="token-note">Icon: check-circle-filled &middot; Accent: color-brand-core-slack-yellow #ecb22e</div>
+			</div>
+
+			<!-- Card 4 — uses slack-logo-color icon + red accent -->
+			<div class="feature-card card-red">
+				<div class="icon-circle">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><g fill="none"><path fill="#36c5f0" d="M7.63 5.73q.52 0 .95.26.44.25.69.69.26.43.26.94 0 .52-.26.96a1.9 1.9 0 0 1-.69.69q-.43.25-.95.25H2.9q-.51 0-.95-.25a2 2 0 0 1-.7-.69A1.9 1.9 0 0 1 1 7.62q0-.51.26-.94.26-.44.69-.69.44-.26.95-.26zM7.62 1q.52 0 .95.26.44.25.69.69.26.44.26.95v1.9h-1.9q-.51 0-.95-.25a2 2 0 0 1-.69-.69 1.9 1.9 0 0 1-.25-.96q0-.51.25-.94.26-.44.69-.7.44-.26.95-.26"/><path fill="#f1b900" d="M12.37 15.201q.51 0 .94.26.43.249.68.69.26.43.26.95 0 .51-.26.95a1.8 1.8 0 0 1-.68.69q-.43.259-.94.26-.519-.001-.96-.26a1.9 1.9 0 0 1-.69-.69 1.9 1.9 0 0 1-.25-.95v-1.9zm4.73-4.73q.51 0 .95.26.44.25.69.69.26.43.26.95 0 .51-.26.94a1.9 1.9 0 0 1-.69.69q-.44.25-.95.25h-4.73q-.519 0-.96-.25a2 2 0 0 1-.69-.69q-.25-.43-.25-.94 0-.52.25-.95.26-.44.69-.69.441-.26.96-.26z"/><path fill="#e01e5a" d="M7.62 10.47q.52 0 .95.26.44.251.69.69.26.431.26.951v4.73q0 .51-.26.95a1.8 1.8 0 0 1-.69.69q-.43.259-.95.26-.51 0-.95-.26a2 2 0 0 1-.69-.7q-.25-.43-.25-.94v-4.73q0-.52.25-.95.26-.44.69-.69.44-.26.95-.26m-2.82 0v1.901q0 .51-.26.94a1.9 1.9 0 0 1-.69.69q-.43.25-.95.25-.51 0-.95-.25a2 2 0 0 1-.7-.69Q1 12.88 1 12.37a1.86 1.86 0 0 1 .95-1.64q.44-.26.95-.26z"/><path fill="#2eb67d" d="M12.37 1q.51 0 .94.26.43.25.68.69.26.44.26.95v4.73q0 .52-.26.96a1.84 1.84 0 0 1-1.62.94q-.519 0-.96-.25a2 2 0 0 1-.69-.69 1.9 1.9 0 0 1-.25-.96V2.9q0-.51.25-.95.26-.44.69-.69.441-.26.96-.26m4.73 4.73q.51 0 .94.26.44.25.7.69.26.43.26.94 0 .52-.26.96a1.9 1.9 0 0 1-.69.69q-.44.25-.95.25h-1.9v-1.9q0-.51.25-.94.26-.44.69-.69.44-.26.96-.26"/></g></svg>
+				</div>
+				<h3>Backed by Salesforce</h3>
+				<p>Data syncs to Salesforce under the hood. Your team gets simplicity; your org gets the single source of truth it needs.</p>
+				<div class="token-note">Icon: slack-logo-color &middot; Accent: color-brand-core-slack-red #e01e5a</div>
+			</div>
+
+			<!-- Card 5 — teal accent -->
+			<div class="feature-card card-teal">
+				<div class="icon-circle">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" fill-rule="evenodd" d="M10 1c.38 0 .873.25.957.817.444 2.975.914 4.474 1.833 5.393.92.92 2.418 1.39 5.393 1.833.568.084.817.576.817.957 0 .38-.25.873-.817.957-2.975.444-4.474.914-5.393 1.833-.92.92-1.39 2.418-1.833 5.393-.084.568-.576.817-.957.817-.38 0-.873-.25-.957-.817-.444-2.975-.914-4.474-1.833-5.393-.92-.92-2.418-1.39-5.393-1.833C1.25 10.873 1 10.381 1 10c0-.38.25-.873.817-.957 2.975-.444 4.474-.914 5.393-1.833.92-.92 1.39-2.418 1.833-5.393C9.127 1.25 9.619 1 10 1" clip-rule="evenodd"/></svg>
+				</div>
+				<h3>Every lead is precious</h3>
+				<p>For SMBs, a personalized video message jumpstarts relationships like nothing else. AI makes it easy enough to actually do for every lead.</p>
+				<div class="token-note">Icon: slack-ai-filled &middot; Accent: color-brand-secondary-teal #167d8e</div>
+			</div>
+
+			<!-- Card 6 — cobalt accent -->
+			<div class="feature-card card-cobalt">
+				<div class="icon-circle">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M5.884 1.92c-1.5-.876-3.384.206-3.384 1.943V16.14c0 1.736 1.884 2.818 3.384 1.943l10.523-6.138c1.488-.869 1.488-3.02 0-3.887z"/></svg>
+				</div>
+				<h3>Templates that do the editing</h3>
+				<p>Launch Announcement. Product Demo. Hot Take. Founder Story. Pick a template and AI handles the cuts, titles, music, and pacing.</p>
+				<div class="token-note">Icon: play-filled &middot; Accent: color-brand-secondary-cobalt #112377</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- ========== COLOR PALETTE SHOWCASE ========== -->
+	<section class="palette-section">
+		<h2>Built on Slack's Design Tokens</h2>
+		<p class="subtitle">Every color on this page comes from the design tokens MCP server</p>
+
+		<div class="palette-grid">
+			<div class="swatch">
+				<div class="swatch-color" style="background: var(--aubergine);"></div>
+				<div class="swatch-label">Aubergine</div>
+				<div class="swatch-value">#4a154b</div>
+			</div>
+			<div class="swatch">
+				<div class="swatch-color" style="background: var(--slack-blue);"></div>
+				<div class="swatch-label">Slack Blue</div>
+				<div class="swatch-value">#36c5f0</div>
+			</div>
+			<div class="swatch">
+				<div class="swatch-color" style="background: var(--slack-green);"></div>
+				<div class="swatch-label">Slack Green</div>
+				<div class="swatch-value">#2eb67d</div>
+			</div>
+			<div class="swatch">
+				<div class="swatch-color" style="background: var(--slack-yellow);"></div>
+				<div class="swatch-label">Slack Yellow</div>
+				<div class="swatch-value">#ecb22e</div>
+			</div>
+			<div class="swatch">
+				<div class="swatch-color" style="background: var(--slack-red);"></div>
+				<div class="swatch-label">Slack Red</div>
+				<div class="swatch-value">#e01e5a</div>
+			</div>
+			<div class="swatch">
+				<div class="swatch-color" style="background: var(--horchatta);"></div>
+				<div class="swatch-label">Horchatta</div>
+				<div class="swatch-value">#f4ede4</div>
+			</div>
+			<div class="swatch">
+				<div class="swatch-color" style="background: var(--teal);"></div>
+				<div class="swatch-label">Teal</div>
+				<div class="swatch-value">#167d8e</div>
+			</div>
+			<div class="swatch">
+				<div class="swatch-color" style="background: var(--cobalt);"></div>
+				<div class="swatch-label">Cobalt</div>
+				<div class="swatch-value">#112377</div>
+			</div>
+			<div class="swatch">
+				<div class="swatch-color" style="background: var(--terracotta);"></div>
+				<div class="swatch-label">Terracotta</div>
+				<div class="swatch-value">#de8969</div>
+			</div>
+			<div class="swatch">
+				<div class="swatch-color" style="background: var(--pool);"></div>
+				<div class="swatch-label">Pool</div>
+				<div class="swatch-value">#78d7dd</div>
+			</div>
+			<div class="swatch">
+				<div class="swatch-color" style="background: var(--evergreen);"></div>
+				<div class="swatch-label">Evergreen</div>
+				<div class="swatch-value">#185f34</div>
+			</div>
+			<div class="swatch">
+				<div class="swatch-color" style="background: var(--sandbar);"></div>
+				<div class="swatch-label">Sandbar</div>
+				<div class="swatch-value">#ffd57e</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- ========== VIDEO DEMO ========== -->
+	<section class="demo-section">
+		<h2>See Reel Talk in action</h2>
+		<p>Upload a raw video. Pick a template. Get a polished clip back in Slack.</p>
+
+		<div class="video-placeholder">
+			<div class="play-button">
+				<!-- Icon: play-filled (media) from design tokens MCP -->
+				<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 20 20"><path fill="currentColor" d="M5.884 1.92c-1.5-.876-3.384.206-3.384 1.943V16.14c0 1.736 1.884 2.818 3.384 1.943l10.523-6.138c1.488-.869 1.488-3.02 0-3.887z"/></svg>
+			</div>
+			<p style="font-size: 1.1rem; opacity: 0.8;">Demo coming Builder Days 2026</p>
+		</div>
+	</section>
+
+	<!-- ========== CHECKLIST ========== -->
+	<section class="checklist-section">
+		<h2>What makes this different</h2>
+		<ul class="checklist">
+			<li>
+				<!-- Icon: check-circle-filled (status) — color: slack-green -->
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 20"><path fill="#2eb67d" fill-rule="evenodd" d="M10 19a9 9 0 1 0 0-18 9 9 0 0 0 0 18m3.722-11.315a.75.75 0 1 0-1.144-.97l-4.125 4.863-1.141-1.611a.75.75 0 1 0-1.224.867l1.7 2.4a.75.75 0 0 0 1.184.051z" clip-rule="evenodd"/></svg>
+				<span>No new app to learn — it's just Slack</span>
+			</li>
+			<li>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 20"><path fill="#2eb67d" fill-rule="evenodd" d="M10 19a9 9 0 1 0 0-18 9 9 0 0 0 0 18m3.722-11.315a.75.75 0 1 0-1.144-.97l-4.125 4.863-1.141-1.611a.75.75 0 1 0-1.224.867l1.7 2.4a.75.75 0 0 0 1.184.051z" clip-rule="evenodd"/></svg>
+				<span>AI captures the data so your team doesn't have to</span>
+			</li>
+			<li>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 20"><path fill="#2eb67d" fill-rule="evenodd" d="M10 19a9 9 0 1 0 0-18 9 9 0 0 0 0 18m3.722-11.315a.75.75 0 1 0-1.144-.97l-4.125 4.863-1.141-1.611a.75.75 0 1 0-1.224.867l1.7 2.4a.75.75 0 0 0 1.184.051z" clip-rule="evenodd"/></svg>
+				<span>Video marketing built in — not bolted on</span>
+			</li>
+			<li>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 20"><path fill="#2eb67d" fill-rule="evenodd" d="M10 19a9 9 0 1 0 0-18 9 9 0 0 0 0 18m3.722-11.315a.75.75 0 1 0-1.144-.97l-4.125 4.863-1.141-1.611a.75.75 0 1 0-1.224.867l1.7 2.4a.75.75 0 0 0 1.184.051z" clip-rule="evenodd"/></svg>
+				<span>Salesforce data under the hood, Slack simplicity on top</span>
+			</li>
+			<li>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 20"><path fill="#2eb67d" fill-rule="evenodd" d="M10 19a9 9 0 1 0 0-18 9 9 0 0 0 0 18m3.722-11.315a.75.75 0 1 0-1.144-.97l-4.125 4.863-1.141-1.611a.75.75 0 1 0-1.224.867l1.7 2.4a.75.75 0 0 0 1.184.051z" clip-rule="evenodd"/></svg>
+				<span>Built for teams of 1-3 marketers, not 100-person orgs</span>
+			</li>
+		</ul>
+	</section>
+
+	<!-- ========== FOOTER ========== -->
+	<footer class="footer">
+		<div class="slack-logo">
+			<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 20 20"><g fill="none"><path fill="#36c5f0" d="M7.63 5.73q.52 0 .95.26.44.25.69.69.26.43.26.94 0 .52-.26.96a1.9 1.9 0 0 1-.69.69q-.43.25-.95.25H2.9q-.51 0-.95-.25a2 2 0 0 1-.7-.69A1.9 1.9 0 0 1 1 7.62q0-.51.26-.94.26-.44.69-.69.44-.26.95-.26zM7.62 1q.52 0 .95.26.44.25.69.69.26.44.26.95v1.9h-1.9q-.51 0-.95-.25a2 2 0 0 1-.69-.69 1.9 1.9 0 0 1-.25-.96q0-.51.25-.94.26-.44.69-.7.44-.26.95-.26"/><path fill="#f1b900" d="M12.37 15.201q.51 0 .94.26.43.249.68.69.26.43.26.95 0 .51-.26.95a1.8 1.8 0 0 1-.68.69q-.43.259-.94.26-.519-.001-.96-.26a1.9 1.9 0 0 1-.69-.69 1.9 1.9 0 0 1-.25-.95v-1.9zm4.73-4.73q.51 0 .95.26.44.25.69.69.26.43.26.95 0 .51-.26.94a1.9 1.9 0 0 1-.69.69q-.44.25-.95.25h-4.73q-.519 0-.96-.25a2 2 0 0 1-.69-.69q-.25-.43-.25-.94 0-.52.25-.95.26-.44.69-.69.441-.26.96-.26z"/><path fill="#e01e5a" d="M7.62 10.47q.52 0 .95.26.44.251.69.69.26.431.26.951v4.73q0 .51-.26.95a1.8 1.8 0 0 1-.69.69q-.43.259-.95.26-.51 0-.95-.26a2 2 0 0 1-.69-.7q-.25-.43-.25-.94v-4.73q0-.52.25-.95.26-.44.69-.69.44-.26.95-.26m-2.82 0v1.901q0 .51-.26.94a1.9 1.9 0 0 1-.69.69q-.43.25-.95.25-.51 0-.95-.25a2 2 0 0 1-.7-.69Q1 12.88 1 12.37a1.86 1.86 0 0 1 .95-1.64q.44-.26.95-.26z"/><path fill="#2eb67d" d="M12.37 1q.51 0 .94.26.43.25.68.69.26.44.26.95v4.73q0 .52-.26.96a1.84 1.84 0 0 1-1.62.94q-.519 0-.96-.25a2 2 0 0 1-.69-.69 1.9 1.9 0 0 1-.25-.96V2.9q0-.51.25-.95.26-.44.69-.69.441-.26.96-.26m4.73 4.73q.51 0 .94.26.44.25.7.69.26.43.26.94 0 .52-.26.96a1.9 1.9 0 0 1-.69.69q-.44.25-.95.25h-1.9v-1.9q0-.51.25-.94.26-.44.69-.69.44-.26.96-.26"/></g></svg>
+		</div>
+		<p>Slack CRM — the invisible CRM for teams who'd rather sell than do data entry.</p>
+		<div class="token-credits">
+			Built with Slack Design Tokens MCP &middot; Icons: slack-logo-color, slack-ai-filled, play-filled, check-circle-filled &middot; Colors: 12 brand tokens &middot; Shadows: shadow-sm through shadow-xl &middot; Spacing: spacing-50 through spacing-400
+		</div>
+	</footer>
+
+</body>
+</html>
